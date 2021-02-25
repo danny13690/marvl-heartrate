@@ -155,8 +155,8 @@ def process_pos(signal_rgb, fps, filter=False, plot=False):
 	bvp_filtered = butter_bandpass_filter(bvp, hr-0.25, hr+0.25, fps, order=1)
 
 	if plot:
-		f = np.arange(0,len(bvp))
-		plt.plot(f, bvp, 'k')
+		f = np.arange(0,len(bvp_filtered))
+		plt.plot(f, bvp_filtered, 'k')
 		plt.title("After butterworth")
 		plt.show()
 
@@ -210,7 +210,4 @@ def process_fft(signal_1d, fps, filter=False, plot=False):
 
 	return hr
 
-
-
-
-
+#def calculate_rmse()
