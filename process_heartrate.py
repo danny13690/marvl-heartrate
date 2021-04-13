@@ -150,7 +150,7 @@ def process_pos(signal_rgb, fps, filter=False, plot=False):
 
 	hr = fft(bvp, fps, plot)
 
-	if not filter: return hr, bvp
+	if not filter: return hr
 
 	bvp_filtered = butter_bandpass_filter(bvp, hr-0.25, hr+0.25, fps, order=1)
 
@@ -160,7 +160,7 @@ def process_pos(signal_rgb, fps, filter=False, plot=False):
 		plt.title("After butterworth")
 		plt.show()
 
-	return hr, bvp_filtered
+	return hr
 
 # processes RGB signal via ICA and FFt
 def process_ica(signal_rgb, fps, filter=False, plot=False):
@@ -210,4 +210,41 @@ def process_fft(signal_1d, fps, filter=False, plot=False):
 
 	return hr
 
-#def calculate_rmse()
+def process_sliding_window(signal, fps, window, step, process, mode, filter=False, plot=False, best_n=5, pose_vectors=None):
+	window_size = int(window * fps)
+	step_size = int(step * fps)
+	total_frames = signal.shape[0]
+	hr_list = []
+	stability = []
+
+	if mode == 'best' and len(signal) != len(pose_vectors):
+		diff = len(signal) - len(pose_vectors)
+		signal = signal[diff:]
+
+	for i in range(0, total_frames-window_size+1, step_size):
+		window = signal[i:i+window_size]
+		hr_list.append(process(window, fps, filter, plot))
+		if mode == 'best':
+			pose_window = pose_vectors[i:i+window_size]
+			stability.append(window_variance(pose_window))
+
+	if mode == 'median':
+		hr_median = np.median(hr_list)
+		return hr_median, hr_list
+
+	if mode == 'best':
+		rank = np.argsort(stability)[:best_n]
+		return np.mean(np.take(hr_list,rank))
+
+
+def calculate_rmse(gt, preds):
+	return np.sqrt(np.mean(np.square(preds-gt)))
+
+def window_variance(pose_vectors):
+	concat = [np.concatenate([np.array(x[0]),np.array(x[1])]) for x in pose_vectors]
+	variance = np.var(np.stack(concat),axis=0)
+	variance = np.max(variance)
+	return variance
+
+
+
