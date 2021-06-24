@@ -231,6 +231,15 @@ def process_sliding_window(signal, fps, window, step, process, mode, filter=Fals
 	if mode == 'median':
 		hr_median = np.median(hr_list)
 		return hr_median, hr_list
+	if mode == 'mean':
+		hr_mean = np.mean(hr_list)
+		return hr_mean, hr_list
+# 	if mode == 'min':
+# 		hr_min = np.min(hr_list)
+# 		return hr_min, hr_list
+# 	if mode == 'max':
+# 		hr_max = np.max(hr_list)
+# 		return hr_max, hr_list
 
 	if mode == 'best':
 		rank = np.argsort(stability)[:best_n]
@@ -244,6 +253,10 @@ def window_variance(pose_vectors):
 	concat = [np.concatenate([np.array(x[0]),np.array(x[1])]) for x in pose_vectors]
 	variance = np.var(np.stack(concat),axis=0)
 	variance = np.max(variance)
+	# if we have [[0, 0, 0], [0, 0, 0]] in pose_vectors we are dealing with a window that has 
+	# frames without faces detected.
+	# TODO: find a better way to deal with frames without faces detected (since all of them are recorded
+	# with pose as [[0, 0, 0], [0, 0, 0]], which would make variance low
 	return variance
 
 
